@@ -1,10 +1,14 @@
-# Use the official OpenJDK 17 image from Docker Hub
-FROM openjdk:17
-# Set working directory inside the container
+# Java 17 runtime (AWS recommended)
+FROM amazoncorretto:17
+
+# App directory
 WORKDIR /app
-# Copy the compiled Java application JAR file into the container
-COPY ./target/crud-service.jar /app
-# Expose the port the Spring Boot application will run on
+
+# Copy jar from target folder
+COPY target/crud-service.jar crud-service.jar
+
+# Expose Spring Boot port
 EXPOSE 8080
-# Command to run the application
-CMD ["java", "-jar", "crud-service.jar"]
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "crud-service.jar"]
