@@ -6,17 +6,16 @@ env:
     FRONTEND_REPO_URI: 242185466800.dkr.ecr.ap-south-1.amazonaws.com/crud-react
 
 phases:
-  phases:
-    pre_build:
-      commands:
-        - echo Logging in to Amazon ECR...
-        - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $BACKEND_REPO_URI
-        - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $FRONTEND_REPO_URI
-        - echo Running Maven build for backend...
-        - cd springboot-app
-        - mvn clean package -DskipTests
-        - cp target/crud-0.0.1-SNAPSHOT.jar target/springboot-crud.jar
-        - cd ..
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $BACKEND_REPO_URI
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $FRONTEND_REPO_URI
+      - echo Running Maven build for backend...
+      - cd springboot-app
+      - mvn clean package -DskipTests
+      - cp target/crud-0.0.1-SNAPSHOT.jar target/springboot-crud.jar
+      - cd ..
 
   build:
     commands:
