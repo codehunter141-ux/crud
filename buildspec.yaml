@@ -1,54 +1,39 @@
+@@ -0,0 +1,38 @@
 version: 0.2
-
-env:
-  variables:
-    BACKEND_REPO_URI: 242185466800.dkr.ecr.ap-south-1.amazonaws.com/springboot-crud
-    FRONTEND_REPO_URI: 242185466800.dkr.ecr.ap-south-1.amazonaws.com/crud-react
 
 phases:
   pre_build:
     commands:
+      - mvn clean install
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $BACKEND_REPO_URI
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $FRONTEND_REPO_URI
-      - echo Running Maven build for backend...
-      - cd springboot-app
-      - mvn clean package -DskipTests
-      - cp target/crud-0.0.1-SNAPSHOT.jar target/springboot-crud.jar
-      - cd ..
-
+      - aws --version
+      - REPOSITORY_URI=242185466800.dkr.ecr.ap-south-1.amazonaws.com/java-crudregistry
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
   build:
     commands:
-      # Backend Docker image
-      - echo Building Spring Boot backend Docker image...
-      - cd springboot-app
-      - docker build -t $BACKEND_REPO_URI:latest .
-      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
-      - docker tag $BACKEND_REPO_URI:latest $BACKEND_REPO_URI:$IMAGE_TAG
-      - cd ..
-
-      # Frontend Docker image
-      - echo Building React frontend Docker image...
-      - cd react-app
-      - npm install
-      - npm run build
-      - docker build -t $FRONTEND_REPO_URI:latest .
-      - docker tag $FRONTEND_REPO_URI:latest $FRONTEND_REPO_URI:$IMAGE_TAG
-      - cd ..
-
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
       - echo Build completed on `date`
-      # Push backend
-      - docker push $BACKEND_REPO_URI:latest
-      - docker push $BACKEND_REPO_URI:$IMAGE_TAG
-      # Push frontend
-      - docker push $FRONTEND_REPO_URI:latest
-      - docker push $FRONTEND_REPO_URI:$IMAGE_TAG
-      - echo Writing imagedefinitions.json...
-      - printf '[{"name":"springboot-crud","imageUri":"%s"},{"name":"crud-react","imageUri":"%s"}]' $BACKEND_REPO_URI:$IMAGE_TAG $FRONTEND_REPO_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo Pushing the Docker images...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Writing image definitions file...
+      - printf '[{"name":"course-service","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo Writing image definitions file...
+      # add your container name
+      - DOCKER_CONTAINER_NAME=java-crudregistry
+      - printf '[{"name":"%s","imageUri":"%s"}]' $DOCKER_CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo $DOCKER_CONTAINER_NAME
+      - echo printing imagedefinitions.json
       - cat imagedefinitions.json
 
 artifacts:
   files:
     - imagedefinitions.json
+    - target/course-service.jar
