@@ -1,22 +1,27 @@
-@@ -0,0 +1,38 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      java: corretto17 # Change to corretto11 or 21 if needed
+
   pre_build:
     commands:
-      - mvn clean install
       - echo Logging in to Amazon ECR...
-      - aws --version
       - REPOSITORY_URI=242185466800.dkr.ecr.ap-south-1.amazonaws.com/java-crudregistry
-      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 242185466800.dkr.ecr.ap-south-1.amazonaws.com
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+
   build:
     commands:
       - echo Build started on `date`
+      - echo Running Maven Build...
+      - mvn clean install -DskipTests
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+
   post_build:
     commands:
       - echo Build completed on `date`
@@ -24,16 +29,11 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      - printf '[{"name":"course-service","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
-      - echo Writing image definitions file...
-      # add your container name
+      # Dhyan dein: "name" aapke ECS Task Definition ke container name se match hona chahiye
       - DOCKER_CONTAINER_NAME=java-crudregistry
       - printf '[{"name":"%s","imageUri":"%s"}]' $DOCKER_CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
-      - echo $DOCKER_CONTAINER_NAME
-      - echo printing imagedefinitions.json
       - cat imagedefinitions.json
 
 artifacts:
   files:
     - imagedefinitions.json
-    - target/course-service.jar
