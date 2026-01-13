@@ -1,14 +1,10 @@
-# Java 17 runtime (AWS recommended)
 FROM amazoncorretto:17
-
-# App directory
 WORKDIR /app
 
-# Copy jar from target folder
-COPY target/crud-service.jar crud-service.jar
+# Sabhi .jar files ko target folder se copy karein aur app.jar naam de dein
+COPY target/*.jar app.jar
 
-# Expose Spring Boot port
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "crud-service.jar"]
+# app.jar ko run karein
+ENTRYPOINT ["java", "-jar", "app.jar"]
