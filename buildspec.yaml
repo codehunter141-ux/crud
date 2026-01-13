@@ -16,9 +16,9 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Running Maven Build...
       - mvn clean install -DskipTests
-      - echo Building the Docker image...
+      - echo "Checking target folder..."
+      - ls -l target/  # Isse logs mein dikh jayega ki jar ka asli naam kya hai
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
 
