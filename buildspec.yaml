@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: corretto17 # Change to corretto11 or 21 if needed
+      java: corretto17
 
   pre_build:
     commands:
@@ -29,7 +29,6 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      # Dhyan dein: "name" aapke ECS Task Definition ke container name se match hona chahiye
       - DOCKER_CONTAINER_NAME=java-crudregistry
       - printf '[{"name":"%s","imageUri":"%s"}]' $DOCKER_CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
